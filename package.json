@@ -1,0 +1,60 @@
+{
+  "name": "standardized-nodejs-template",
+  "version": "1.0.0",
+  "description": "Standardized Node.js project template with Express, authentication, and best practices",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "mocha tests/**/*.test.js --recursive --exit",
+    "test:watch": "npm test -- --watch",
+    "test:coverage": "nyc npm test",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "format": "prettier --write src/ tests/",
+    "build": "npm run lint && npm test",
+    "docker:build": "docker build -t nodejs-template .",
+    "docker:run": "docker run -p 3000:3000 nodejs-template"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "api",
+    "template",
+    "authentication",
+    "mongodb",
+    "jwt"
+  ],
+  "author": "Wasim S Creator",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "express-validator": "^7.0.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.8.1",
+    "dotenv": "^16.3.1",
+    "morgan": "^1.10.0",
+    "compression": "^1.7.4",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.4",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.8",
+    "supertest": "^6.3.3",
+    "nyc": "^15.1.0",
+    "eslint": "^8.48.0",
+    "prettier": "^3.0.2",
+    "@types/node": "^20.5.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
