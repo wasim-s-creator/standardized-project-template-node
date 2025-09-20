@@ -12,9 +12,17 @@
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
     "format": "prettier --write src/ tests/",
+    "format:check": "prettier --check src/ tests/",
     "build": "npm run lint && npm test",
     "docker:build": "docker build -t nodejs-template .",
-    "docker:run": "docker run -p 3000:3000 nodejs-template"
+    "docker:run": "docker run -p 3000:3000 nodejs-template",
+    "prepare": "husky install",
+    "commit": "git-cz",
+    "release": "standard-version",
+    "release:patch": "npm run release -- --release-as patch",
+    "release:minor": "npm run release -- --release-as minor",
+    "release:major": "npm run release -- --release-as major",
+    "validate": "npm run lint && npm run format:check && npm test"
   },
   "keywords": [
     "nodejs",
@@ -23,7 +31,10 @@
     "template",
     "authentication",
     "mongodb",
-    "jwt"
+    "jwt",
+    "vcs",
+    "git-hooks",
+    "conventional-commits"
   ],
   "author": "Wasim S Creator",
   "license": "MIT",
@@ -51,10 +62,94 @@
     "nyc": "^15.1.0",
     "eslint": "^8.48.0",
     "prettier": "^3.0.2",
-    "@types/node": "^20.5.0"
+    "@types/node": "^20.5.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
+    "standard-version": "^9.5.0"
   },
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "*.js": [
+      "npm test -- --findRelatedTests --passWithNoTests"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ],
+    "rules": {
+      "type-enum": [
+        2,
+        "always",
+        [
+          "feat",
+          "fix",
+          "docs",
+          "style",
+          "refactor",
+          "perf",
+          "test",
+          "build",
+          "ci",
+          "chore",
+          "revert"
+        ]
+      ],
+      "subject-max-length": [2, "always", 72],
+      "subject-case": [2, "always", "lower-case"],
+      "subject-empty": [2, "never"],
+      "type-empty": [2, "never"]
+    }
+  },
+  "standard-version": {
+    "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
+    "scripts": {
+      "prebump": "npm run validate",
+      "precommit": "git add CHANGELOG.md"
+    }
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.js"
+    ],
+    "exclude": [
+      "tests/**",
+      "coverage/**",
+      "node_modules/**"
+    ],
+    "reporter": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "check-coverage": true,
+    "lines": 80,
+    "functions": 85,
+    "branches": 75
   }
 }
