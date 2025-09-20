@@ -1,0 +1,310 @@
+name: 🔒 Branch Protection Setup
+
+# This workflow sets up branch protection rules automatically
+# Run manually or when repository settings need to be updated
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch to protect (default: main)'
+        required: false
+        default: 'main'
+        type: string
+      required_reviews:
+        description: 'Number of required reviews'
+        required: false
+        default: '1'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+      dismiss_stale_reviews:
+        description: 'Dismiss stale reviews when new commits are pushed'
+        required: false
+        default: true
+        type: boolean
+      require_code_owner_reviews:
+        description: 'Require review from code owners'
+        required: false
+        default: false
+        type: boolean
+      enforce_admins:
+        description: 'Enforce restrictions for administrators'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  setup-branch-protection:
+    name: 🔒 Configure Branch Protection
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔒 Setup Branch Protection Rules
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branchName = '${{ github.event.inputs.branch_name || "main" }}';
+            const requiredReviews = parseInt('${{ github.event.inputs.required_reviews || "1" }}');
+            const dismissStaleReviews = ${{ github.event.inputs.dismiss_stale_reviews || true }};
+            const requireCodeOwnerReviews = ${{ github.event.inputs.require_code_owner_reviews || false }};
+            const enforceAdmins = ${{ github.event.inputs.enforce_admins || true }};
+            
+            console.log(`Setting up branch protection for: ${branchName}`);
+            
+            try {
+              await github.rest.repos.updateBranchProtection({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                branch: branchName,
+                required_status_checks: {
+                  strict: true,
+                  contexts: [
+                    'Code Quality',
+                    'Test Suite (18.x)',
+                    'Security Scan',
+                    'Build Test'
+                  ]
+                },
+                enforce_admins: enforceAdmins,
+                required_pull_request_reviews: {
+                  required_approving_review_count: requiredReviews,
+                  dismiss_stale_reviews: dismissStaleReviews,
+                  require_code_owner_reviews: requireCodeOwnerReviews,
+                  require_last_push_approval: false
+                },
+                restrictions: null, // No push restrictions for users/teams
+                allow_force_pushes: false,
+                allow_deletions: false
+              });
+              
+              console.log(`✅ Branch protection rules successfully applied to ${branchName}`);
+              
+              // Create a summary
+              await core.summary
+                .addHeading('🔒 Branch Protection Applied')
+                .addTable([
+                  [{data: 'Setting', header: true}, {data: 'Value', header: true}],
+                  ['Branch', branchName],
+                  ['Required Reviews', requiredReviews.toString()],
+                  ['Dismiss Stale Reviews', dismissStaleReviews.toString()],
+                  ['Code Owner Reviews', requireCodeOwnerReviews.toString()],
+                  ['Enforce for Admins', enforceAdmins.toString()],
+                  ['Required Status Checks', 'Code Quality, Tests, Security, Build'],
+                  ['Allow Force Pushes', 'false'],
+                  ['Allow Deletions', 'false']
+                ])
+                .write();
+                
+            } catch (error) {
+              console.error('Error setting up branch protection:', error);
+              core.setFailed(`Failed to setup branch protection: ${error.message}`);
+            }
+
+      - name: 📝 Create CODEOWNERS File
+        run: |
+          mkdir -p .github
+          cat > .github/CODEOWNERS << 'EOF'
+          # Code Owners Configuration
+          # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+          
+          # Global code owners (will be requested for review on all PRs)
+          * @${{ github.repository_owner }}
+          
+          # Specific file/directory owners
+          /src/controllers/ @${{ github.repository_owner }}
+          /src/models/ @${{ github.repository_owner }}
+          /src/middleware/ @${{ github.repository_owner }}
+          
+          # Configuration files
+          /.github/ @${{ github.repository_owner }}
+          /package.json @${{ github.repository_owner }}
+          /package-lock.json @${{ github.repository_owner }}
+          /.env.example @${{ github.repository_owner }}
+          
+          # Documentation
+          /README.md @${{ github.repository_owner }}
+          /CONTRIBUTING.md @${{ github.repository_owner }}
+          /SECURITY.md @${{ github.repository_owner }}
+          
+          # CI/CD and workflows
+          /.github/workflows/ @${{ github.repository_owner }}
+          /Dockerfile @${{ github.repository_owner }}
+          /docker-compose*.yml @${{ github.repository_owner }}
+          
+          # Tests
+          /tests/ @${{ github.repository_owner }}
+          EOF
+          
+          echo "✅ CODEOWNERS file created"
+
+      - name: 📝 Create Branch Strategy Documentation
+        run: |
+          mkdir -p .github
+          cat > .github/BRANCH_STRATEGY.md << 'EOF'
+          # 🌳 Branch Strategy & Workflow
+          
+          ## Branch Structure
+          
+          ```
+          main (protected)
+           │
+           ├── develop (integration branch)
+           │    │
+           │    ├── feature/user-authentication
+           │    ├── feature/api-endpoints  
+           │    └── feature/database-integration
+           │
+           ├── hotfix/security-patch
+           └── bugfix/login-validation
+          ```
+          
+          ## Branch Types
+          
+          | Branch Type | Purpose | Naming Convention | Base Branch |
+          |-------------|---------|-------------------|-------------|
+          | `main` | Production-ready code | `main` | - |
+          | `develop` | Integration branch | `develop` | `main` |
+          | `feature/*` | New features | `feature/feature-name` | `develop` |
+          | `bugfix/*` | Bug fixes | `bugfix/issue-description` | `develop` |
+          | `hotfix/*` | Critical production fixes | `hotfix/urgent-fix` | `main` |
+          | `docs/*` | Documentation updates | `docs/section-name` | `develop` |
+          | `test/*` | Test improvements | `test/test-description` | `develop` |
+          
+          ## Workflow Process
+          
+          ### Feature Development
+          1. Create feature branch from `develop`
+          2. Implement feature with tests
+          3. Create PR to `develop`
+          4. Code review and approval
+          5. Merge to `develop`
+          6. Deploy to staging for testing
+          7. Create PR from `develop` to `main`
+          8. Final review and merge to `main`
+          9. Deploy to production
+          
+          ### Hotfix Process
+          1. Create hotfix branch from `main`
+          2. Implement critical fix
+          3. Create PR to `main`
+          4. Emergency review and approval
+          5. Merge to `main`
+          6. Deploy to production immediately
+          7. Merge `main` back to `develop`
+          
+          ## Protection Rules
+          
+          ### Main Branch
+          - ✅ Require pull request reviews (1+ approvals)
+          - ✅ Dismiss stale reviews when new commits pushed
+          - ✅ Require status checks to pass
+          - ✅ Require branches to be up to date
+          - ✅ Enforce for administrators
+          - ❌ Allow force pushes
+          - ❌ Allow deletions
+          
+          ### Required Status Checks
+          - Code Quality (ESLint, Prettier)
+          - Test Suite (Multiple Node.js versions)
+          - Security Scan
+          - Build Test
+          
+          ## Commands Reference
+          
+          ```bash
+          # Create and switch to new feature branch
+          git checkout develop
+          git pull origin develop
+          git checkout -b feature/your-feature-name
+          
+          # Work on feature...
+          git add .
+          git commit -m "feat: add your feature description"
+          git push origin feature/your-feature-name
+          
+          # Create PR via GitHub UI
+          # After approval and merge, cleanup
+          git checkout develop
+          git pull origin develop
+          git branch -d feature/your-feature-name
+          ```
+          
+          ## Best Practices
+          
+          ✅ **Do:**
+          - Keep feature branches small and focused
+          - Rebase feature branches before creating PR
+          - Write descriptive commit messages
+          - Include tests with new features
+          - Update documentation
+          
+          ❌ **Don't:**
+          - Commit directly to main or develop
+          - Create long-lived feature branches
+          - Force push to shared branches
+          - Merge without review
+          - Skip status checks
+          
+          ## Emergency Procedures
+          
+          ### Production Issue
+          1. Create hotfix branch from main
+          2. Fix the issue
+          3. Test thoroughly
+          4. Create emergency PR
+          5. Get expedited review
+          6. Merge and deploy
+          7. Post-incident review
+          
+          ### Rollback
+          1. Identify problematic commit
+          2. Create revert PR
+          3. Fast-track review
+          4. Merge and deploy
+          5. Investigate root cause
+          EOF
+          
+          echo "✅ Branch strategy documentation created"
+
+      - name: 🔄 Commit New Files (if any)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if [[ -n $(git status --porcelain) ]]; then
+            git add .github/CODEOWNERS .github/BRANCH_STRATEGY.md
+            git commit -m "docs: add code owners and branch strategy documentation"
+            git push
+            echo "✅ New files committed and pushed"
+          else
+            echo "ℹ️ No new files to commit"
+          fi
+
+      - name: 🎉 Setup Complete
+        run: |
+          echo "## 🎉 Branch Protection Setup Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔒 Applied Settings:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.event.inputs.branch_name || 'main' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Required Reviews**: ${{ github.event.inputs.required_reviews || '1' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status Checks**: Code Quality, Tests, Security, Build" >> $GITHUB_STEP_SUMMARY
+          echo "- **Admin Enforcement**: ${{ github.event.inputs.enforce_admins || 'true' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Created Files:" >> $GITHUB_STEP_SUMMARY
+          echo "- `.github/CODEOWNERS` - Define code review assignments" >> $GITHUB_STEP_SUMMARY
+          echo "- `.github/BRANCH_STRATEGY.md` - Branch workflow documentation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review and customize CODEOWNERS file" >> $GITHUB_STEP_SUMMARY
+          echo "2. Share branch strategy with team" >> $GITHUB_STEP_SUMMARY
+          echo "3. Test the workflow with a sample PR" >> $GITHUB_STEP_SUMMARY
+          echo "4. Set up additional team permissions if needed" >> $GITHUB_STEP_SUMMARY
