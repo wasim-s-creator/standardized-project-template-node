@@ -1,0 +1,12 @@
+# Enforce LF for text files (JS, JSON, MD, etc)
+* text=auto eol=lf
+
+# Explicitly force LF for config and lock files
+package-lock.json text eol=lf
+.gitattributes text eol=lf
+
+# Windows batch files use CRLF
+*.bat text eol=crlf
+
+# Shell scripts use LF
+*.sh text eol=lf
