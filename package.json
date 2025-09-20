@@ -39,38 +39,38 @@
   "author": "Wasim S Creator",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^7.5.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "express-validator": "^7.0.1",
-    "cors": "^2.8.5",
-    "helmet": "^7.0.0",
-    "express-rate-limit": "^6.8.1",
-    "dotenv": "^16.3.1",
-    "morgan": "^1.10.0",
     "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.8.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
+    "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.4",
     "winston": "^3.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1",
-    "mocha": "^10.2.0",
-    "chai": "^4.3.8",
-    "supertest": "^6.3.3",
-    "nyc": "^15.1.0",
-    "eslint": "^8.48.0",
-    "prettier": "^3.0.2",
-    "@types/node": "^20.5.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^14.0.1",
-    "commitizen": "^4.3.0",
-    "cz-conventional-changelog": "^3.3.0",
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
+    "@types/node": "^20.5.0",
+    "chai": "^4.3.8",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^8.48.0",
+    "husky": "^8.0.3",
+    "is-ci": "^3.0.1",
+    "lint-staged": "^14.0.1",
+    "mocha": "^10.8.2",
+    "nodemon": "^3.0.1",
+    "nyc": "^15.1.0",
+    "prettier": "^3.0.2",
     "standard-version": "^9.5.0",
-    "is-ci": "^3.0.1"
+    "supertest": "^6.3.3"
   },
   "engines": {
     "node": ">=16.0.0",
@@ -121,10 +121,24 @@
           "revert"
         ]
       ],
-      "subject-max-length": [2, "always", 72],
-      "subject-case": [2, "always", "lower-case"],
-      "subject-empty": [2, "never"],
-      "type-empty": [2, "never"]
+      "subject-max-length": [
+        2,
+        "always",
+        72
+      ],
+      "subject-case": [
+        2,
+        "always",
+        "lower-case"
+      ],
+      "subject-empty": [
+        2,
+        "never"
+      ],
+      "type-empty": [
+        2,
+        "never"
+      ]
     }
   },
   "standard-version": {
