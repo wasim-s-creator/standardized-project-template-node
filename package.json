@@ -16,7 +16,7 @@
     "build": "npm run lint && npm test",
     "docker:build": "docker build -t nodejs-template .",
     "docker:run": "docker run -p 3000:3000 nodejs-template",
-    "prepare": "husky install",
+    "prepare": "is-ci || husky install",
     "commit": "git-cz",
     "release": "standard-version",
     "release:patch": "npm run release -- --release-as patch",
@@ -69,7 +69,8 @@
     "cz-conventional-changelog": "^3.3.0",
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
-    "standard-version": "^9.5.0"
+    "standard-version": "^9.5.0",
+    "is-ci": "^3.0.1"
   },
   "engines": {
     "node": ">=16.0.0",
