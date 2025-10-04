@@ -1,3 +1,8 @@
+# Coverage reports
+coverage/
+.nyc_output/
+*.lcov
+coverage.svg
 # Dependencies
 node_modules/
 npm-debug.log*

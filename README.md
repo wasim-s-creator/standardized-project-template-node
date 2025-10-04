@@ -9,6 +9,7 @@ A comprehensive, production-ready Node.js template with Express, MongoDB, JWT au
 ## ✨ Features
 
 ### 🔐 **Authentication & Security**
+
 - JWT-based authentication with role-based access control
 - Password hashing with bcrypt
 - Input validation and sanitization
@@ -16,6 +17,7 @@ A comprehensive, production-ready Node.js template with Express, MongoDB, JWT au
 - CORS protection
 
 ### 🏗️ **Architecture**
+
 - Clean MVC architecture
 - Modular route organization
 - Centralized error handling
@@ -23,18 +25,21 @@ A comprehensive, production-ready Node.js template with Express, MongoDB, JWT au
 - Environment-based configuration
 
 ### 📊 **Database & Models**
+
 - MongoDB with Mongoose ODM
 - User model with authentication methods
 - Database connection management
 - Schema validation
 
 ### 🧪 **Development Tools**
+
 - Pre-configured ESLint and Prettier
 - Mocha testing framework setup
 - Nodemon for development
 - Docker support ready
 
 ### 📋 **Templates & Documentation**
+
 - Issue and PR templates
 - Contributing guidelines
 - Security policy
@@ -43,6 +48,7 @@ A comprehensive, production-ready Node.js template with Express, MongoDB, JWT au
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js >= 16.0.0
 - MongoDB 4.4+
 - npm or yarn
@@ -51,36 +57,41 @@ A comprehensive, production-ready Node.js template with Express, MongoDB, JWT au
 
 1. **Use this template** by clicking the "Use this template" button above
 2. **Clone your new repository**
+
    ```bash
    git clone https://github.com/yourusername/your-project-name.git
    cd your-project-name
    ```
 
 3. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 4. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
 5. **Start MongoDB** (if running locally)
+
    ```bash
    # Using MongoDB service
    sudo systemctl start mongod
-   
+
    # Or using Docker
    docker run -d -p 27017:27017 --name mongodb mongo:latest
    ```
 
 6. **Run the application**
+
    ```bash
    # Development mode
    npm run dev
-   
+
    # Production mode
    npm start
    ```
@@ -112,12 +123,14 @@ src/
 ## 🔌 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - User login
 - `GET /api/auth/profile` - Get user profile (Protected)
 - `PUT /api/auth/profile` - Update profile (Protected)
 
 ### User Management (Admin Only)
+
 - `GET /api/users` - Get all users with pagination
 - `GET /api/users/:id` - Get single user
 - `PUT /api/users/:id` - Update user
@@ -125,6 +138,7 @@ src/
 - `GET /api/users/stats` - User statistics
 
 ### Health Checks
+
 - `GET /api/health` - Basic health check
 - `GET /api/health/detailed` - Detailed system info
 - `GET /api/health/db` - Database connectivity
@@ -192,14 +206,14 @@ npm run docker:run
 
 ## 📋 Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm start` | Start production server |
-| `npm run dev` | Start development server with nodemon |
-| `npm test` | Run test suite |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format code with Prettier |
-| `npm run build` | Run linting and tests |
+| Command          | Description                           |
+| ---------------- | ------------------------------------- |
+| `npm start`      | Start production server               |
+| `npm run dev`    | Start development server with nodemon |
+| `npm test`       | Run test suite                        |
+| `npm run lint`   | Run ESLint                            |
+| `npm run format` | Format code with Prettier             |
+| `npm run build`  | Run linting and tests                 |
 
 ## 🔒 Security Features
 
@@ -245,5 +259,18 @@ If you have any questions or need help getting started:
 3. Review the [Contributing Guidelines](CONTRIBUTING.md)
 
 ---
+
+## 📊 Code Coverage
+
+This project maintains a **minimum code coverage of 70%** to ensure code quality and reliability.
+
+### Coverage Requirements
+
+- **Lines**: ≥ 70%
+- **Functions**: ≥ 70%
+- **Branches**: ≥ 65%
+- **Statements**: ≥ 70%
+
+### Coverage Commands
 
 **Happy coding! 🎉**

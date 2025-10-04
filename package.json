@@ -16,13 +16,16 @@
     "build": "npm run lint && npm test",
     "docker:build": "docker build -t nodejs-template .",
     "docker:run": "docker run -p 3000:3000 nodejs-template",
-    "prepare": "if [ \"$CI\" != \"true\" ] && [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
+    "prepare": "husky install",
     "commit": "git-cz",
     "release": "standard-version",
     "release:patch": "npm run release -- --release-as patch",
     "release:minor": "npm run release -- --release-as minor",
     "release:major": "npm run release -- --release-as major",
-    "validate": "npm run lint && npm run format:check && npm test"
+    "validate": "npm run lint && npm run format:check && npm test",
+    "test:coverage-report": "nyc --reporter=html npm test",
+    "test:coverage-check": "nyc check-coverage --lines 70 --functions 70 --branches 65 --statements 70",
+    "coverage:open": "open coverage/index.html"
   },
   "keywords": [
     "nodejs",
@@ -57,7 +60,9 @@
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/node": "^20.5.0",
+    "c8": "^10.1.3",
     "chai": "^4.3.8",
     "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",

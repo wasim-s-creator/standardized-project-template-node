@@ -2,3 +2,25 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 npx lint-staged
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged
+npx lint-staged
+
+# Run tests with coverage
+echo "🧪 Running tests with coverage..."
+npm run test:coverage
+
+# Check coverage threshold
+echo "📊 Checking coverage threshold..."
+npm run test:coverage-check
+
+if [ $? -ne 0 ]; then
+	echo "❌ Code coverage below 70% threshold!"
+	echo "💡 Run 'npm run test:coverage-report' to see detailed report"
+	exit 1
+fi
+
+echo "✅ All checks passed!"
+npx lint-staged
