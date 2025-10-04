@@ -16,7 +16,7 @@
     "build": "npm run lint && npm test",
     "docker:build": "docker build -t nodejs-template .",
     "docker:run": "docker run -p 3000:3000 nodejs-template",
-    "prepare": "husky install",
+    "prepare": "test \"$CI\" = \"true\" && echo \"Skipping Husky in CI\" || husky install",
     "commit": "git-cz",
     "release": "standard-version",
     "release:patch": "npm run release -- --release-as patch",
