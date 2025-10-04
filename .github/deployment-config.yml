@@ -1,0 +1,184 @@
+# 🚀 Deployment Configuration
+# This file defines the deployment criteria and environments for the automated CD pipeline
+
+# 🎯 Quality Gates - These must pass for deployment to proceed
+quality_gates:
+  # Code coverage requirements
+  coverage:
+    minimum_line_coverage: 70
+    minimum_function_coverage: 70
+    minimum_branch_coverage: 65
+  
+  # Security requirements  
+  security:
+    max_high_vulnerabilities: 0
+    max_critical_vulnerabilities: 0
+    required_security_scans:
+      - npm_audit
+      - eslint_security
+  
+  # Build requirements
+  build:
+    max_build_time_minutes: 15
+    max_artifact_size_mb: 100
+    required_files:
+      - package.json
+      - build-manifest.json
+  
+  # Test requirements
+  tests:
+    minimum_test_count: 1
+    required_test_types:
+      - unit
+    max_test_time_minutes: 10
+
+# 🏢 Deployment Environments
+environments:
+  staging:
+    name: "Staging Environment"
+    description: "Pre-production testing environment"
+    auto_deploy: true
+    approval_required: false
+    health_check:
+      endpoint: "/health"
+      timeout_seconds: 30
+      retry_count: 3
+    notifications:
+      slack_channel: "#staging-deployments"
+      email_list: ["dev-team@company.com"]
+  
+  production:
+    name: "Production Environment"
+    description: "Live production environment"
+    auto_deploy: true  # Set to false if you want manual approval
+    approval_required: false  # Set to true for manual approval gate
+    health_check:
+      endpoint: "/health"
+      timeout_seconds: 60
+      retry_count: 5
+    notifications:
+      slack_channel: "#production-deployments"
+      email_list: ["dev-team@company.com", "ops-team@company.com"]
+    
+    # Production-specific quality gates (stricter)
+    quality_gates_override:
+      coverage:
+        minimum_line_coverage: 80
+        minimum_function_coverage: 80
+        minimum_branch_coverage: 75
+      security:
+        max_high_vulnerabilities: 0
+        max_critical_vulnerabilities: 0
+
+# 📊 Monitoring and Alerting
+monitoring:
+  deployment_timeout_minutes: 20
+  rollback_on_failure: true
+  health_check_retries: 5
+  post_deployment_monitoring_minutes: 10
+
+# 📎 Artifact Management
+artifacts:
+  retention_days: 90
+  compression_enabled: true
+  checksums_required: true
+  naming_pattern: "app-{date}-{commit}"
+
+# 📧 Notification Settings
+notifications:
+  deployment_start: true
+  deployment_success: true
+  deployment_failure: true
+  quality_gate_failure: true
+  
+  # Notification channels
+  channels:
+    slack:
+      enabled: false  # Set to true and configure webhook
+      webhook_url: ""  # Add your Slack webhook URL
+    email:
+      enabled: false  # Set to true and configure SMTP
+      smtp_server: ""
+    teams:
+      enabled: false  # Set to true for Microsoft Teams
+      webhook_url: ""
+
+# 🔄 Rollback Configuration
+rollback:
+  enabled: true
+  automatic_on_health_check_failure: true
+  keep_previous_versions: 3
+  rollback_timeout_minutes: 10
+
+# 🔐 Security Configuration
+security:
+  scan_artifacts: true
+  verify_checksums: true
+  secrets_detection: true
+  
+  # Files that should NOT be in production builds
+  forbidden_files:
+    - ".env"
+    - ".env.local"
+    - ".env.development"
+    - "*.log"
+    - "node_modules/.cache"
+    - "coverage/"
+    - "tests/"
+
+# 🌐 Deployment Targets (Examples)
+# Uncomment and configure based on your deployment platform
+deployment_targets:
+  # AWS Example
+  # aws:
+  #   enabled: false
+  #   region: "us-east-1"
+  #   s3_bucket: "your-app-bucket"
+  #   cloudfront_distribution: "E1234567890"
+  
+  # Docker Example
+  # docker:
+  #   enabled: false
+  #   registry: "your-registry.com"
+  #   image_name: "your-app"
+  #   tag_strategy: "commit-sha"
+  
+  # VPS Example
+  # vps:
+  #   enabled: false
+  #   host: "your-server.com"
+  #   user: "deploy"
+  #   path: "/var/www/your-app"
+  #   restart_command: "pm2 restart your-app"
+  
+  # Vercel Example
+  # vercel:
+  #   enabled: false
+  #   project_id: "your-project-id"
+  #   org_id: "your-org-id"
+  
+  # Heroku Example
+  # heroku:
+  #   enabled: false
+  #   app_name: "your-heroku-app"
+  #   region: "us"
+
+# 📈 Metrics and Reporting
+metrics:
+  track_deployment_frequency: true
+  track_lead_time: true
+  track_mttr: true  # Mean Time To Recovery
+  track_change_failure_rate: true
+  
+  # Export to external systems
+  export:
+    prometheus: false
+    datadog: false
+    cloudwatch: false
+
+# 🚫 Feature Flags
+feature_flags:
+  enable_blue_green_deployment: false
+  enable_canary_deployment: false
+  enable_a_b_testing: false
+  enable_database_migrations: false
