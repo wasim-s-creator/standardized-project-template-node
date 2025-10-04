@@ -209,7 +209,7 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Production Dependencies
-        run: npm ci --omit=dev
+        run: HUSKY_SKIP_INSTALL=1 npm ci --omit=dev
 
       - name: 🔍 Production Security Scan
         run: |
