@@ -109,4 +109,44 @@ router.get('/db', async (req, res) => {
   }
 });
 
+// @route   GET /api/health/deployment-test
+// @desc    Deployment pipeline test endpoint
+// @access  Public
+// @note    This endpoint verifies automated deployment works
+router.get('/deployment-test', (req, res) => {
+  try {
+    // Get package info for version tracking
+    const pkg = require('../../package.json');
+    
+    res.json({
+      success: true,
+      message: 'Deployment test successful! 🚀',
+      deployment: {
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        version: pkg.version,
+        nodeVersion: process.version,
+        uptime: process.uptime()
+      },
+      pipeline: {
+        automated: true,
+        trigger: 'merge-to-main',
+        status: 'active'
+      },
+      test: {
+        endpoint: '/api/health/deployment-test',
+        purpose: 'Verify CD pipeline deployment',
+        expected: 'This response indicates successful automated deployment'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Deployment test failed',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 module.exports = router;
