@@ -100,11 +100,13 @@ jobs:
           fi
 
       - name: 📤 Upload ESLint Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: eslint-results
           path: eslint-results.json
+          retention-days: 30
+          compression-level: 6
 
   # 🧪 Comprehensive Testing
   comprehensive-testing:
