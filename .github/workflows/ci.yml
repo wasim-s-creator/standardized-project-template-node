@@ -40,7 +40,7 @@ jobs:
           cache: 'npm' # Re-enabled caching for performance
 
       - name: 📦 Install Dependencies
-        run: npm ci # Changed from 'npm install' to 'npm ci' for CI
+        run: npm ci # Always installs devDependencies for Husky
 
       - name: 🎨 Enhanced ESLint Check with Security
         run: |
@@ -126,7 +126,7 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Dependencies
-        run: npm ci
+        run: npm ci # Always installs devDependencies for Husky
 
       - name: ⚙️ Setup Test Environment
         run: |
