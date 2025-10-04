@@ -1,13 +1,16 @@
 const { expect } = require('chai');
-const { jwtSecret } = require('../src/secret-leak');
+const { SECRET_KEY, signJwt } = require('../src/secret-leak');
 
 describe('secret-leak', () => {
-  it('should export a hardcoded secret', () => {
-    expect(jwtSecret).to.be.a('string');
-    expect(jwtSecret).to.equal('supersecretkey123');
+  it('should export a realistic hardcoded secret', () => {
+    expect(SECRET_KEY).to.be.a('string');
+    expect(SECRET_KEY).to.match(/^sk_live_/);
   });
 
-  it('should not be empty', () => {
-    expect(jwtSecret.length).to.be.greaterThan(0);
+  it('should use the secret in signJwt', () => {
+    const payload = { user: 'alice' };
+    const signed = signJwt(payload);
+    expect(signed).to.include(SECRET_KEY);
+    expect(signed).to.include('signed');
   });
 });
