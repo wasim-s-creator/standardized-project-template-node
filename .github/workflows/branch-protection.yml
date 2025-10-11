@@ -40,7 +40,7 @@ jobs:
   setup-branch-protection:
     name: 🔒 Configure Branch Protection
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -52,14 +52,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const branchName = '${{ github.event.inputs.branch_name || "main" }}';
-            const requiredReviews = parseInt('${{ github.event.inputs.required_reviews || "1" }}');
+            const branchName = '${{ github.event.inputs.branch_name != '' && github.event.inputs.branch_name || 'main' }}';
+            const requiredReviews = parseInt('${{ github.event.inputs.required_reviews != '' && github.event.inputs.required_reviews || '1' }}');
             const dismissStaleReviews = ${{ github.event.inputs.dismiss_stale_reviews || true }};
             const requireCodeOwnerReviews = ${{ github.event.inputs.require_code_owner_reviews || false }};
             const enforceAdmins = ${{ github.event.inputs.enforce_admins || true }};
-            
+
             console.log(`Setting up branch protection for: ${branchName}`);
-            
+
             try {
               await github.rest.repos.updateBranchProtection({
                 owner: context.repo.owner,
@@ -115,35 +115,35 @@ jobs:
           cat > .github/CODEOWNERS << 'EOF'
           # Code Owners Configuration
           # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
-          
+
           # Global code owners (will be requested for review on all PRs)
           * @${{ github.repository_owner }}
-          
+
           # Specific file/directory owners
           /src/controllers/ @${{ github.repository_owner }}
           /src/models/ @${{ github.repository_owner }}
           /src/middleware/ @${{ github.repository_owner }}
-          
+
           # Configuration files
           /.github/ @${{ github.repository_owner }}
           /package.json @${{ github.repository_owner }}
           /package-lock.json @${{ github.repository_owner }}
           /.env.example @${{ github.repository_owner }}
-          
+
           # Documentation
           /README.md @${{ github.repository_owner }}
           /CONTRIBUTING.md @${{ github.repository_owner }}
           /SECURITY.md @${{ github.repository_owner }}
-          
+
           # CI/CD and workflows
           /.github/workflows/ @${{ github.repository_owner }}
           /Dockerfile @${{ github.repository_owner }}
           /docker-compose*.yml @${{ github.repository_owner }}
-          
+
           # Tests
           /tests/ @${{ github.repository_owner }}
           EOF
-          
+
           echo "✅ CODEOWNERS file created"
 
       - name: 📝 Create Branch Strategy Documentation
@@ -151,9 +151,9 @@ jobs:
           mkdir -p .github
           cat > .github/BRANCH_STRATEGY.md << 'EOF'
           # 🌳 Branch Strategy & Workflow
-          
+
           ## Branch Structure
-          
+
           ```
           main (protected)
            │
@@ -166,9 +166,9 @@ jobs:
            ├── hotfix/security-patch
            └── bugfix/login-validation
           ```
-          
+
           ## Branch Types
-          
+
           | Branch Type | Purpose | Naming Convention | Base Branch |
           |-------------|---------|-------------------|-------------|
           | `main` | Production-ready code | `main` | - |
@@ -178,9 +178,9 @@ jobs:
           | `hotfix/*` | Critical production fixes | `hotfix/urgent-fix` | `main` |
           | `docs/*` | Documentation updates | `docs/section-name` | `develop` |
           | `test/*` | Test improvements | `test/test-description` | `develop` |
-          
+
           ## Workflow Process
-          
+
           ### Feature Development
           1. Create feature branch from `develop`
           2. Implement feature with tests
@@ -191,7 +191,7 @@ jobs:
           7. Create PR from `develop` to `main`
           8. Final review and merge to `main`
           9. Deploy to production
-          
+
           ### Hotfix Process
           1. Create hotfix branch from `main`
           2. Implement critical fix
@@ -200,9 +200,9 @@ jobs:
           5. Merge to `main`
           6. Deploy to production immediately
           7. Merge `main` back to `develop`
-          
+
           ## Protection Rules
-          
+
           ### Main Branch
           - ✅ Require pull request reviews (1+ approvals)
           - ✅ Dismiss stale reviews when new commits pushed
@@ -211,51 +211,51 @@ jobs:
           - ✅ Enforce for administrators
           - ❌ Allow force pushes
           - ❌ Allow deletions
-          
+
           ### Required Status Checks
           - Code Quality (ESLint, Prettier)
           - Test Suite (Multiple Node.js versions)
           - Security Scan
           - Build Test
-          
+
           ## Commands Reference
-          
+
           ```bash
           # Create and switch to new feature branch
           git checkout develop
           git pull origin develop
           git checkout -b feature/your-feature-name
-          
+
           # Work on feature...
           git add .
           git commit -m "feat: add your feature description"
           git push origin feature/your-feature-name
-          
+
           # Create PR via GitHub UI
           # After approval and merge, cleanup
           git checkout develop
           git pull origin develop
           git branch -d feature/your-feature-name
           ```
-          
+
           ## Best Practices
-          
+
           ✅ **Do:**
           - Keep feature branches small and focused
           - Rebase feature branches before creating PR
           - Write descriptive commit messages
           - Include tests with new features
           - Update documentation
-          
+
           ❌ **Don't:**
           - Commit directly to main or develop
           - Create long-lived feature branches
           - Force push to shared branches
           - Merge without review
           - Skip status checks
-          
+
           ## Emergency Procedures
-          
+
           ### Production Issue
           1. Create hotfix branch from main
           2. Fix the issue
@@ -264,7 +264,7 @@ jobs:
           5. Get expedited review
           6. Merge and deploy
           7. Post-incident review
-          
+
           ### Rollback
           1. Identify problematic commit
           2. Create revert PR
@@ -272,14 +272,14 @@ jobs:
           4. Merge and deploy
           5. Investigate root cause
           EOF
-          
+
           echo "✅ Branch strategy documentation created"
 
       - name: 🔄 Commit New Files (if any)
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           if [[ -n $(git status --porcelain) ]]; then
             git add .github/CODEOWNERS .github/BRANCH_STRATEGY.md
             git commit -m "docs: add code owners and branch strategy documentation"
