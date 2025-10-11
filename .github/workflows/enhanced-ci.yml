@@ -2,9 +2,9 @@ name: 🔒 Enhanced Security CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
@@ -21,18 +21,21 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0 # Full history for better analysis
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+
+      - name: Install security dependencies
+        run: npm list eslint-plugin-security ||  npm install --save-dev eslint-plugin-security@latest
 
       - name: 📦 Install Dependencies
         run: |
@@ -59,11 +62,11 @@ jobs:
           echo "Running comprehensive security audit..."
           npm audit --audit-level moderate --json > audit-results.json || true
           npm audit --audit-level moderate
-          
+
           # Check for high/critical vulnerabilities
           HIGH_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
           CRITICAL_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
-          
+
           if [ "$HIGH_VULNS" -gt 0 ] || [ "$CRITICAL_VULNS" -gt 0 ]; then
             echo "❌ High or critical vulnerabilities found!"
             echo "High: $HIGH_VULNS, Critical: $CRITICAL_VULNS"
@@ -82,7 +85,7 @@ jobs:
         run: |
           echo "## 🔍 Code Quality Analysis" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # ESLint Summary
           if [ -f eslint-results.json ]; then
             ERRORS=$(cat eslint-results.json | jq '[.[].messages[] | select(.severity == 2)] | length')
@@ -92,7 +95,7 @@ jobs:
             echo "- Warnings: $WARNINGS" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           # Security Audit Summary
           if [ -f audit-results.json ]; then
             echo "### Security Audit" >> $GITHUB_STEP_SUMMARY
@@ -114,11 +117,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: security-quality-checks
-    
+
     strategy:
       matrix:
         node-version: ['16.x', '18.x', '20.x']
-    
+
     services:
       mongodb:
         image: mongo:6.0
@@ -160,7 +163,7 @@ jobs:
             mkdir -p tests
             cat > tests/basic.test.js << 'EOF'
           const assert = require('assert');
-          
+
           describe('Basic Application Tests', () => {
             it('should have Node.js environment', () => {
               assert.ok(process.version);
@@ -190,11 +193,11 @@ jobs:
 
   # 🚀 Build & Security Verification
   build-security-check:
-    name: 🚀 Build & Security Verification  
+    name: 🚀 Build & Security Verification
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [security-quality-checks, comprehensive-testing]
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -211,17 +214,17 @@ jobs:
       - name: 🔒 Production Security Check
         run: |
           echo "Verifying production security..."
-          
+
           # Check for dev dependencies in production
           DEV_DEPS=$(npm ls --depth=0 --omit=dev --json 2>/dev/null | jq -r '.dependencies | keys | length')
           echo "Production dependencies count: $DEV_DEPS"
-          
+
           # Verify no sensitive files
           if [ -f ".env" ]; then
             echo "❌ .env file found in build! This is a security risk."
             exit 1
           fi
-          
+
           echo "✅ Production build security verified"
 
       - name: 🚀 Application Startup Test
@@ -229,7 +232,7 @@ jobs:
           echo "Testing application startup..."
           timeout 10s npm start > startup.log 2>&1 &
           sleep 5
-          
+
           # Check if process is running
           if pgrep -f "node.*server" > /dev/null; then
             echo "✅ Application started successfully"
@@ -245,14 +248,15 @@ jobs:
     name: 📋 Pipeline Status Report
     runs-on: ubuntu-latest
     if: always()
-    needs: [security-quality-checks, comprehensive-testing, build-security-check]
-    
+    needs:
+      [security-quality-checks, comprehensive-testing, build-security-check]
+
     steps:
       - name: 📊 Generate Comprehensive Report
         run: |
           echo "# 🔒 Enhanced CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "## 📈 Job Status Overview" >> $GITHUB_STEP_SUMMARY
           echo "| Stage | Status | Details |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|---------|" >> $GITHUB_STEP_SUMMARY
@@ -260,7 +264,7 @@ jobs:
           echo "| 🧪 Testing Suite | ${{ needs.comprehensive-testing.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | Multi-version testing |" >> $GITHUB_STEP_SUMMARY  
           echo "| 🚀 Build & Security | ${{ needs.build-security-check.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | Production readiness |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Overall status
           if [[ "${{ needs.security-quality-checks.result }}" == "success" && "${{ needs.comprehensive-testing.result }}" == "success" && "${{ needs.build-security-check.result }}" == "success" ]]; then
             echo "## 🎉 Overall Status: **PIPELINE PASSED** 🎉" >> $GITHUB_STEP_SUMMARY
@@ -273,7 +277,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Please check the failed jobs above and fix the issues." >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "📅 **Pipeline executed:** $(date)" >> $GITHUB_STEP_SUMMARY
