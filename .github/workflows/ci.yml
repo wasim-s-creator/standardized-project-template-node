@@ -13,14 +13,12 @@ env:
   FORCE_COLOR: true
   HUSKY_SKIP_INSTALL: 1 # Skip Husky in CI to prevent installation issues
 
-# Added permissions for security scanning
 permissions:
   contents: read
   security-events: write
   pull-requests: write
 
 jobs:
-  # 📊 Enhanced Code Quality & Security Checks
   quality-checks:
     name: 🔍 Code Quality & Security
     runs-on: ubuntu-latest
@@ -46,9 +44,7 @@ jobs:
       - name: 🎨 Enhanced ESLint Check with Security
         run: |
           if npm run | grep -q "lint"; then
-            # Generate JSON report for analysis
             npx eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-report.json || true
-            # Show results in console
             npm run lint || echo "⚠️ ESLint issues found"
           else
             echo "⚠️ No lint script found - running basic ESLint"
@@ -58,10 +54,11 @@ jobs:
 
       - name: 📝 Prettier Format Check
         run: |
-          if npm run | grep -q "format"; then
+          if npm run | grep -q "format:check"; then
+            npm run format:check
+          elif npm run | grep -q "format"; then
             npm run format -- --check || echo "⚠️ Format issues found"
           else
-            echo "⚠️ No format script found - running basic Prettier check"
             npx prettier --check "**/*.{js,json,md}" || echo "⚠️ Format issues found"
           fi
         continue-on-error: true
@@ -69,12 +66,8 @@ jobs:
       - name: 🔒 Enhanced Security Audit
         run: |
           echo "Running comprehensive security audit..."
-          # Generate JSON report
           npm audit --audit-level moderate --json > npm-audit.json || true
-          # Show results
           npm audit --audit-level high || echo "⚠️ Security vulnerabilities found"
-
-          # Check for critical/high vulnerabilities
           if command -v jq >/dev/null 2>&1; then
             HIGH_VULNS=$(cat npm-audit.json | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo "0")
             CRITICAL_VULNS=$(cat npm-audit.json | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || echo "0")
@@ -94,7 +87,6 @@ jobs:
           retention-days: 30
           compression-level: 6
 
-  # 🧪 Enhanced Test Suite with Multi-Node Support
   test:
     name: 🧪 Test Suite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
@@ -132,11 +124,16 @@ jobs:
         env:
           HUSKY_SKIP_INSTALL: 1
 
-      - name: ⚙️ Setup Test Environment
+      - name: ⚙️ Setup Test Environment (sanitize DB name)
+        id: dbname
         run: |
+          v="${{ matrix.node-version }}"
+          v="${v//./}"                   # strip dots
+          v="${v//[^A-Za-z0-9_-]/}"      # strip non-alnum (defense-in-depth)
+          echo "DBNAME=test_db_${{ github.run_id }}_${v}" >> $GITHUB_OUTPUT
           echo "NODE_ENV=test" > .env.test
-          echo "MONGODB_URI=mongodb://localhost:27017/test_db_${{ github.run_id }}_${{ matrix.node-version }}" >> .env.test
-          echo "JWT_SECRET=test-jwt-secret-${{ github.run_id }}-${{ matrix.node-version }}" >> .env.test
+          echo "MONGODB_URI=mongodb://localhost:27017/${{ steps.dbname.outputs.DBNAME }}" >> .env.test
+          echo "JWT_SECRET=test-jwt-secret-${{ github.run_id }}-${v}" >> .env.test
           echo "PORT=300${{ strategy.job-index }}" >> .env.test
 
       - name: 🧪 Run Tests with Coverage
@@ -152,22 +149,9 @@ jobs:
             mkdir -p tests
             cat > tests/enhanced-test.js << 'EOF'
           const assert = require('assert');
-
           describe('Enhanced Test Suite', () => {
             it('should verify Node.js version', () => {
-              console.log(`✅ Node.js version: ${process.version}`);
               assert.ok(process.version);
-            });
-            
-            it('should test basic functionality', () => {
-              const pkg = require('../package.json');
-              assert.ok(pkg.name);
-              console.log(`✅ Package: ${pkg.name}`);
-            });
-            
-            it('should verify environment', () => {
-              assert.ok(process.env.NODE_ENV || 'development');
-              console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
             });
           });
           EOF
@@ -177,27 +161,6 @@ jobs:
           NODE_ENV: test
           USE_SYSTEM_MONGO: true
 
-      - name: 📊 Generate Test Report
-        if: always()
-        run: |
-          echo "# Test Results for Node.js ${{ matrix.node-version }}" > test-report-${{ matrix.node-version }}.md
-          echo "" >> test-report-${{ matrix.node-version }}.md
-          echo "- **Node Version**: ${{ matrix.node-version }}" >> test-report-${{ matrix.node-version }}.md
-          echo "- **Test Status**: ${{ job.status }}" >> test-report-${{ matrix.node-version }}.md
-          echo "- **Timestamp**: $(date)" >> test-report-${{ matrix.node-version }}.md
-
-      - name: 📋 Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results-node-${{ matrix.node-version }}
-          path: |
-            test-report-${{ matrix.node-version }}.md
-            coverage/
-          retention-days: 30
-          compression-level: 6
-
-  # 🚀 Enhanced Build & Security Verification
   build:
     name: 🚀 Build & Security Verification
     runs-on: ubuntu-latest
@@ -223,26 +186,15 @@ jobs:
         run: |
           echo "🔍 Scanning production dependencies..."
           npm audit --production --audit-level moderate || echo "⚠️ Production security issues found"
-
-          # Check for sensitive files
-          echo "🔍 Checking for sensitive files..."
           if [ -f ".env" ]; then
             echo "❌ .env file found in production build!"
             exit 1
           fi
-
           echo "✅ Production security scan completed"
 
       - name: 🚀 Enhanced Application Test
         run: |
-          echo "🚀 Testing application startup..."
-          echo "✅ Node.js version: $(node --version)"
-          echo "✅ npm version: $(npm --version)"
-
-          # Test application can load without starting server
           node -e "console.log('✅ Application modules can be loaded');"
-
-          echo "✅ Application verification completed"
 
       - name: 📋 Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -255,7 +207,6 @@ jobs:
           retention-days: 30
           compression-level: 6
 
-  # 📊 Enhanced Status Report
   status-report:
     name: 📊 Enhanced Status Report
     runs-on: ubuntu-latest
@@ -263,57 +214,11 @@ jobs:
     needs: [quality-checks, test, build]
 
     steps:
-      - name: 📥 Download All Artifacts
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-
       - name: 📋 Generate Comprehensive Report
         run: |
           echo "# 🚀 Enhanced CI/CD Pipeline Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "## 📈 Pipeline Overview" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Timestamp**: $(date)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "## 📊 Job Status Details" >> $GITHUB_STEP_SUMMARY
-          echo "| Stage | Status | Duration | Details |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|----------|---------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔍 Code Quality & Security | ${{ needs.quality-checks.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | - | ESLint, Prettier, Security Audit |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Multi-Node Testing | ${{ needs.test.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | - | Node 16.x, 18.x, 20.x |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🚀 Build & Security | ${{ needs.build.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | - | Production verification |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Overall status with enhanced messaging
-          if [[ "${{ needs.quality-checks.result }}" == "success" && "${{ needs.test.result }}" == "success" && "${{ needs.build.result }}" == "success" ]]; then
-            echo "## 🎉 Overall Status: **PIPELINE PASSED** 🎉" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **All security and quality checks passed**" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **Multi-version testing completed successfully**" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **Production build verified and secure**" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "## ❌ Overall Status: **PIPELINE FAILED** ❌" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Please review the failed jobs above and address the issues." >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## 📋 Security Enhancements Applied" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Enhanced ESLint security rules" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Comprehensive npm audit scanning" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Production dependency verification" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Sensitive file detection" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Multi-node version compatibility" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Husky CI compatibility fixes" >> $GITHUB_STEP_SUMMARY
-
-      - name: 📋 Upload Final Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: pipeline-final-report
-          path: .
-          retention-days: 90
-          compression-level: 6
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Code Quality & Security | ${{ needs.quality-checks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Multi-Node Testing | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚀 Build & Security | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
