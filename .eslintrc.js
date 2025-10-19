@@ -5,9 +5,10 @@ module.exports = {
     es2021: true,
     mocha: true,
   },
-  extends: ['eslint:recommended'],
+  extends: ['eslint:recommended', 'plugin:security/recommended'],
+  plugins: ['security'],
   parserOptions: {
-    ecmaVersion: 'latest',
+    ecmaVersion: 2022,
     sourceType: 'commonjs',
   },
   rules: {
@@ -20,7 +21,7 @@ module.exports = {
         varsIgnorePattern: '^_',
       },
     ],
-    'no-console': 'off',
+    'no-console': 'warn',
 
     // Code style
     indent: ['error', 2],
