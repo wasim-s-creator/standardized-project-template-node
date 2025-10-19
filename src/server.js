@@ -26,14 +26,18 @@ connectDB();
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: 'Too many requests from this IP, please try again later.',
 });
 
 // Global Middleware
 app.use(helmet()); // Security headers
 app.use(cors()); // Enable CORS
 app.use(compression()); // Compress responses
-app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) }})); // Logging
+app.use(
+  morgan('combined', {
+    stream: { write: message => logger.info(message.trim()) },
+  })
+); // Logging
 app.use(express.json({ limit: '10mb' })); // Body parser
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(limiter); // Apply rate limiting
@@ -61,7 +65,9 @@ process.on('SIGINT', () => {
 });
 
 app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  logger.info(
+    `Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`
+  );
 });
 
 module.exports = app;

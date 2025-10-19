@@ -15,7 +15,8 @@ const getUsers = async (req, res, next) => {
     // Build query
     const query = {};
     if (req.query.role) query.role = req.query.role;
-    if (req.query.isActive !== undefined) query.isActive = req.query.isActive === 'true';
+    if (req.query.isActive !== undefined)
+      query.isActive = req.query.isActive === 'true';
 
     // Get users with pagination
     const users = await User.find(query)
@@ -33,10 +34,9 @@ const getUsers = async (req, res, next) => {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     });
-
   } catch (error) {
     logger.error('Get users error:', error.message);
     next(error);
@@ -55,15 +55,14 @@ const getUser = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     res.json({
       success: true,
-      user
+      user,
     });
-
   } catch (error) {
     logger.error('Get user error:', error.message);
     next(error);
@@ -85,21 +84,21 @@ const updateUser = async (req, res, next) => {
     if (!existingUser) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     // Check if email is already taken by another user
     if (email && email !== existingUser.email) {
-      const emailTaken = await User.findOne({ 
-        email, 
-        _id: { $ne: userId } 
+      const emailTaken = await User.findOne({
+        email,
+        _id: { $ne: userId },
       });
-      
+
       if (emailTaken) {
         return res.status(400).json({
           success: false,
-          message: 'Email already in use'
+          message: 'Email already in use',
         });
       }
     }
@@ -116,9 +115,8 @@ const updateUser = async (req, res, next) => {
     res.json({
       success: true,
       message: 'User updated successfully',
-      user
+      user,
     });
-
   } catch (error) {
     logger.error('Update user error:', error.message);
     next(error);
@@ -137,7 +135,7 @@ const deleteUser = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -145,7 +143,7 @@ const deleteUser = async (req, res, next) => {
     if (user._id.toString() === req.user._id.toString()) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete your own account'
+        message: 'Cannot delete your own account',
       });
     }
 
@@ -155,9 +153,8 @@ const deleteUser = async (req, res, next) => {
 
     res.json({
       success: true,
-      message: 'User deleted successfully'
+      message: 'User deleted successfully',
     });
-
   } catch (error) {
     logger.error('Delete user error:', error.message);
     next(error);
@@ -175,7 +172,7 @@ const getUserStats = async (req, res, next) => {
     const activeUsers = await User.countDocuments({ isActive: true });
     const adminUsers = await User.countDocuments({ role: 'admin' });
     const recentUsers = await User.countDocuments({
-      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
     });
 
     res.json({
@@ -185,10 +182,9 @@ const getUserStats = async (req, res, next) => {
         activeUsers,
         inactiveUsers: totalUsers - activeUsers,
         adminUsers,
-        recentUsers
-      }
+        recentUsers,
+      },
     });
-
   } catch (error) {
     logger.error('Get user stats error:', error.message);
     next(error);
@@ -200,5 +196,5 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
-  getUserStats
+  getUserStats,
 };

@@ -15,7 +15,7 @@ const register = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -26,7 +26,7 @@ const register = async (req, res, next) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email'
+        message: 'User already exists with this email',
       });
     }
 
@@ -34,7 +34,7 @@ const register = async (req, res, next) => {
     const user = await User.create({
       name,
       email,
-      password
+      password,
     });
 
     // Generate JWT token
@@ -53,10 +53,9 @@ const register = async (req, res, next) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
-
   } catch (error) {
     logger.error('Registration error:', error.message);
     next(error);
@@ -76,7 +75,7 @@ const login = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -87,7 +86,7 @@ const login = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid credentials',
       });
     }
 
@@ -95,7 +94,7 @@ const login = async (req, res, next) => {
     if (!user.isActive) {
       return res.status(401).json({
         success: false,
-        message: 'Account has been deactivated'
+        message: 'Account has been deactivated',
       });
     }
 
@@ -104,7 +103,7 @@ const login = async (req, res, next) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid credentials',
       });
     }
 
@@ -125,10 +124,9 @@ const login = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        lastLogin: user.lastLogin
-      }
+        lastLogin: user.lastLogin,
+      },
     });
-
   } catch (error) {
     logger.error('Login error:', error.message);
     next(error);
@@ -146,9 +144,8 @@ const getProfile = async (req, res, next) => {
 
     res.json({
       success: true,
-      user
+      user,
     });
-
   } catch (error) {
     logger.error('Get profile error:', error.message);
     next(error);
@@ -167,15 +164,15 @@ const updateProfile = async (req, res, next) => {
 
     // Check if email is already taken by another user
     if (email) {
-      const existingUser = await User.findOne({ 
-        email, 
-        _id: { $ne: userId } 
+      const existingUser = await User.findOne({
+        email,
+        _id: { $ne: userId },
       });
-      
+
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: 'Email already in use'
+          message: 'Email already in use',
         });
       }
     }
@@ -192,9 +189,8 @@ const updateProfile = async (req, res, next) => {
     res.json({
       success: true,
       message: 'Profile updated successfully',
-      user
+      user,
     });
-
   } catch (error) {
     logger.error('Update profile error:', error.message);
     next(error);
@@ -205,5 +201,5 @@ module.exports = {
   register,
   login,
   getProfile,
-  updateProfile
+  updateProfile,
 };

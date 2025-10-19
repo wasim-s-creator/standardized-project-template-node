@@ -5,7 +5,7 @@ const {
   register,
   login,
   getProfile,
-  updateProfile
+  updateProfile,
 } = require('../controllers/authController');
 
 const router = express.Router();
@@ -24,7 +24,9 @@ const registerValidation = [
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters long')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number')
+    .withMessage(
+      'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+    ),
 ];
 
 const loginValidation = [
@@ -32,9 +34,7 @@ const loginValidation = [
     .isEmail()
     .normalizeEmail()
     .withMessage('Please provide a valid email'),
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required')
+  body('password').notEmpty().withMessage('Password is required'),
 ];
 
 const updateProfileValidation = [
@@ -47,7 +47,7 @@ const updateProfileValidation = [
     .optional()
     .isEmail()
     .normalizeEmail()
-    .withMessage('Please provide a valid email')
+    .withMessage('Please provide a valid email'),
 ];
 
 // @route   POST /api/auth/register
@@ -68,6 +68,11 @@ router.get('/profile', authenticateToken, getProfile);
 // @route   PUT /api/auth/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', authenticateToken, updateProfileValidation, updateProfile);
+router.put(
+  '/profile',
+  authenticateToken,
+  updateProfileValidation,
+  updateProfile
+);
 
 module.exports = router;

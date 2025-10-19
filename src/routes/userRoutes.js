@@ -6,7 +6,7 @@ const {
   getUser,
   updateUser,
   deleteUser,
-  getUserStats
+  getUserStats,
 } = require('../controllers/userController');
 
 const router = express.Router();
@@ -30,7 +30,7 @@ const updateUserValidation = [
   body('isActive')
     .optional()
     .isBoolean()
-    .withMessage('isActive must be a boolean value')
+    .withMessage('isActive must be a boolean value'),
 ];
 
 // Apply authentication to all routes

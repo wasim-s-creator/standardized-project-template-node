@@ -10,7 +10,7 @@ const notFound = (req, res, next) => {
     message: `Route ${req.originalUrl} not found`,
     timestamp: new Date().toISOString(),
     path: req.originalUrl,
-    method: req.method
+    method: req.method,
   });
 };
 

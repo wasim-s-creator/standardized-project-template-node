@@ -16,46 +16,48 @@ const authenticateToken = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Access token required'
+        message: 'Access token required',
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-    
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'fallback_secret'
+    );
+
     // Get user from database
     const user = await User.findById(decoded.userId).select('-password');
-    
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     // Add user to request object
     req.user = user;
     next();
-
   } catch (error) {
     logger.error('Authentication error:', error.message);
-    
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        message: 'Token expired'
+        message: 'Token expired',
       });
     }
-    
+
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token'
+        message: 'Invalid token',
       });
     }
 
     res.status(500).json({
       success: false,
-      message: 'Internal server error during authentication'
+      message: 'Internal server error during authentication',
     });
   }
 };
@@ -70,14 +72,14 @@ const authorizeRoles = (...roles) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: 'Insufficient permissions'
+        message: 'Insufficient permissions',
       });
     }
 
@@ -87,5 +89,5 @@ const authorizeRoles = (...roles) => {
 
 module.exports = {
   authenticateToken,
-  authorizeRoles
+  authorizeRoles,
 };

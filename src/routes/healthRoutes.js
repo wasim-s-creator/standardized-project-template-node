@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
     success: true,
     message: 'API is running',
     timestamp: new Date().toISOString(),
-    status: 'healthy'
+    status: 'healthy',
   });
 });
 
@@ -22,8 +22,9 @@ router.get('/', (req, res) => {
 router.get('/detailed', async (req, res) => {
   try {
     // Check database connection
-    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    
+    const dbStatus =
+      mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+
     // System information
     const systemInfo = {
       platform: os.platform(),
@@ -33,9 +34,9 @@ router.get('/detailed', async (req, res) => {
       memory: {
         total: os.totalmem(),
         free: os.freemem(),
-        used: process.memoryUsage()
+        used: process.memoryUsage(),
       },
-      loadAverage: os.loadavg()
+      loadAverage: os.loadavg(),
     };
 
     res.json({
@@ -44,18 +45,17 @@ router.get('/detailed', async (req, res) => {
       timestamp: new Date().toISOString(),
       services: {
         api: 'running',
-        database: dbStatus
+        database: dbStatus,
       },
       system: systemInfo,
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
     });
-
   } catch (error) {
     res.status(503).json({
       success: false,
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -70,41 +70,40 @@ router.get('/db', async (req, res) => {
       0: 'disconnected',
       1: 'connected',
       2: 'connecting',
-      3: 'disconnecting'
+      3: 'disconnecting',
     };
 
     if (dbState === 1) {
       // Perform a simple query to test database
       await mongoose.connection.db.admin().ping();
-      
+
       res.json({
         success: true,
         database: {
           status: states[dbState],
           host: mongoose.connection.host,
           name: mongoose.connection.name,
-          port: mongoose.connection.port
+          port: mongoose.connection.port,
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } else {
       res.status(503).json({
         success: false,
         database: {
-          status: states[dbState]
+          status: states[dbState],
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-
   } catch (error) {
     res.status(503).json({
       success: false,
       database: {
         status: 'error',
-        error: error.message
+        error: error.message,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });
