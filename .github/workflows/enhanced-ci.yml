@@ -2,9 +2,9 @@ name: 🔒 Enhanced Security CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
@@ -20,12 +20,12 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0 # Full history for better analysis
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
@@ -97,11 +97,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: security-quality-checks
-    
+    env:
+      NODE_ENV: test
+      USE_SYSTEM_MONGO: true
+      MONGODB_URI: 'mongodb://localhost:27017/test_db_${{ github.run_id }}_${{ matrix.node-version }}'
+
     strategy:
       matrix:
         node-version: ['16.x', '18.x', '20.x']
-    
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -118,6 +132,7 @@ jobs:
       - name: ⚙️ Setup Test Environment
         run: |
           echo "NODE_ENV=test" > .env.test
+          echo "MONGODB_URI=mongodb://localhost:27017/test_db_${{ github.run_id }}_${{ matrix.node-version }}" >> .env.test
           echo "JWT_SECRET=test-jwt-secret-${{ github.run_id }}-${{ matrix.node-version }}" >> .env.test
 
       - name: 🧪 Run Unit Tests
@@ -130,13 +145,14 @@ jobs:
           fi
         env:
           NODE_ENV: test
+          USE_SYSTEM_MONGO: true
 
   build-security-check:
-    name: 🚀 Build & Security Verification  
+    name: 🚀 Build & Security Verification
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [security-quality-checks, comprehensive-testing]
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -163,8 +179,9 @@ jobs:
     name: 📋 Pipeline Status Report
     runs-on: ubuntu-latest
     if: always()
-    needs: [security-quality-checks, comprehensive-testing, build-security-check]
-    
+    needs:
+      [security-quality-checks, comprehensive-testing, build-security-check]
+
     steps:
       - name: 📊 Generate Comprehensive Report
         run: |

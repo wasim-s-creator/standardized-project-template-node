@@ -8,7 +8,8 @@ const logger = require('../src/utils/logger');
 let mongoServer;
 
 before(async function () {
-  this.timeout(20000);
+  // Increase timeout for starting/stopping DB in slower CI environments
+  this.timeout(60000);
   // If there's already an active connection, disconnect it first to avoid
   // "openUri on an active connection" errors when switching URIs.
   if (mongoose.connection && mongoose.connection.readyState !== 0) {
@@ -75,7 +76,9 @@ before(async function () {
   }
 });
 
-after(async () => {
+after(async function () {
+  // Allow more time for graceful shutdown in CI
+  this.timeout(30000);
   try {
     await mongoose.disconnect();
   } catch (err) {
@@ -83,7 +86,11 @@ after(async () => {
   }
 
   if (mongoServer) {
-    await mongoServer.stop();
+    try {
+      await mongoServer.stop();
+    } catch (err) {
+      logger.error('Error stopping in-memory MongoDB instance', err);
+    }
   }
   logger.info('Disconnected in-memory MongoDB');
 });
