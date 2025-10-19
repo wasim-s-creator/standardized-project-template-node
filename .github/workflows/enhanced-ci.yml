@@ -97,14 +97,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: security-quality-checks
-    env:
-      NODE_ENV: test
-      USE_SYSTEM_MONGO: true
-      MONGODB_URI: 'mongodb://localhost:27017/test_db_${{ github.run_id }}_${{ matrix.node-version }}'
 
     strategy:
       matrix:
         node-version: ['16.x', '18.x', '20.x']
+
     services:
       mongodb:
         image: mongo:6.0
@@ -129,11 +126,16 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm ci
 
-      - name: ⚙️ Setup Test Environment
+      - name: ⚙️ Setup Test Environment (sanitize DB name)
+        id: dbname
         run: |
+          v="${{ matrix.node-version }}"
+          v="${v//./}"                   # strip dots
+          v="${v//[^A-Za-z0-9_-]/}"      # strip non-alnum (defense-in-depth)
+          echo "DBNAME=test_db_${{ github.run_id }}_${v}" >> $GITHUB_OUTPUT
           echo "NODE_ENV=test" > .env.test
-          echo "MONGODB_URI=mongodb://localhost:27017/test_db_${{ github.run_id }}_${{ matrix.node-version }}" >> .env.test
-          echo "JWT_SECRET=test-jwt-secret-${{ github.run_id }}-${{ matrix.node-version }}" >> .env.test
+          echo "MONGODB_URI=mongodb://localhost:27017/${{ steps.dbname.outputs.DBNAME }}" >> .env.test
+          echo "JWT_SECRET=test-jwt-secret-${{ github.run_id }}-${v}" >> .env.test
 
       - name: 🧪 Run Unit Tests
         run: |
