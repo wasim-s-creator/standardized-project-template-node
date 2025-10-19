@@ -19,9 +19,6 @@ const healthRoutes = require('./routes/healthRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Connect to Database
-connectDB();
-
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -64,10 +61,17 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-app.listen(PORT, () => {
-  logger.info(
-    `Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`
-  );
-});
+// Only start the server and connect to the database when this file is run directly.
+// When the module is required (for tests), we export the app so tests can control startup.
+if (require.main === module) {
+  // Connect to Database
+  connectDB();
+
+  app.listen(PORT, () => {
+    logger.info(
+      `Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`
+    );
+  });
+}
 
 module.exports = app;

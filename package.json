@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "mocha tests/**/*.test.js --recursive --exit",
+    "test": "mocha --file tests/setup.js tests/**/*.test.js --recursive --exit --timeout 10000",
     "test:watch": "npm test -- --watch",
     "test:coverage": "nyc npm test",
     "lint": "eslint src/ tests/",
@@ -76,7 +76,8 @@
     "prettier": "^3.0.2",
     "sinon": "^21.0.0",
     "standard-version": "^9.5.0",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.3",
+    "mongodb-memory-server": "^8.11.0"
   },
   "engines": {
     "node": ">=16.0.0",

@@ -34,6 +34,10 @@ const connectDB = async () => {
     });
   } catch (error) {
     logger.error('Database connection failed:', error.message);
+    // In test environment we don't want to exit the process; throw so test harness can handle it
+    if (process.env.NODE_ENV === 'test') {
+      throw error;
+    }
     process.exit(1);
   }
 };
