@@ -11,7 +11,7 @@ on:
 env:
   NODE_VERSION: '18.x'
   FORCE_COLOR: true
-  HUSKY_SKIP_INSTALL: 1  # Skip Husky in CI to prevent installation issues
+  HUSKY_SKIP_INSTALL: 1 # Skip Husky in CI to prevent installation issues
 
 # Added permissions for security scanning
 permissions:
@@ -73,7 +73,7 @@ jobs:
           npm audit --audit-level moderate --json > npm-audit.json || true
           # Show results
           npm audit --audit-level high || echo "⚠️ Security vulnerabilities found"
-          
+
           # Check for critical/high vulnerabilities
           if command -v jq >/dev/null 2>&1; then
             HIGH_VULNS=$(cat npm-audit.json | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo "0")
@@ -152,7 +152,7 @@ jobs:
             mkdir -p tests
             cat > tests/enhanced-test.js << 'EOF'
           const assert = require('assert');
-          
+
           describe('Enhanced Test Suite', () => {
             it('should verify Node.js version', () => {
               console.log(`✅ Node.js version: ${process.version}`);
@@ -175,6 +175,7 @@ jobs:
           fi
         env:
           NODE_ENV: test
+          USE_SYSTEM_MONGO: true
 
       - name: 📊 Generate Test Report
         if: always()
@@ -222,14 +223,14 @@ jobs:
         run: |
           echo "🔍 Scanning production dependencies..."
           npm audit --production --audit-level moderate || echo "⚠️ Production security issues found"
-          
+
           # Check for sensitive files
           echo "🔍 Checking for sensitive files..."
           if [ -f ".env" ]; then
             echo "❌ .env file found in production build!"
             exit 1
           fi
-          
+
           echo "✅ Production security scan completed"
 
       - name: 🚀 Enhanced Application Test
@@ -237,10 +238,10 @@ jobs:
           echo "🚀 Testing application startup..."
           echo "✅ Node.js version: $(node --version)"
           echo "✅ npm version: $(npm --version)"
-          
+
           # Test application can load without starting server
           node -e "console.log('✅ Application modules can be loaded');"
-          
+
           echo "✅ Application verification completed"
 
       - name: 📋 Upload Build Artifacts
@@ -270,14 +271,14 @@ jobs:
         run: |
           echo "# 🚀 Enhanced CI/CD Pipeline Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "## 📈 Pipeline Overview" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Timestamp**: $(date)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "## 📊 Job Status Details" >> $GITHUB_STEP_SUMMARY
           echo "| Stage | Status | Duration | Details |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|----------|---------|" >> $GITHUB_STEP_SUMMARY
@@ -298,7 +299,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Please review the failed jobs above and address the issues." >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📋 Security Enhancements Applied" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Enhanced ESLint security rules" >> $GITHUB_STEP_SUMMARY
